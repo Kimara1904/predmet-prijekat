@@ -1,0 +1,32 @@
+@import '../../variables.css';
+.article_div_form{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    align-items: center;
+    
+}
+
+.article_file img{
+    width: 225px;
+    height: 225px;
+    object-fit: cover;
+}
+
+.article_file {
+    display: flex;
+    flex-direction: column;
+}
+
+.article_form {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--cream_color);
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.article_inputs {
+    display: flex;
+    flex-direction: column;
+}

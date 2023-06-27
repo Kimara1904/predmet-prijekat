@@ -1,0 +1,32 @@
+.article_detail{
+    margin-top: 10vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.article_detail img{
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+}
+
+.article_info {
+    width: 350px;
+    margin-left: 30px;
+}
+
+.article_detail_link_back{
+    margin-top: 90px;
+    margin-left: 50px;
+}
+
+.article_detail_img_button {
+    display: flex;
+    flex-direction: column;
+}
+
+.article_detail_buttons {
+    display: flex;
+    justify-content: space-between;
+}

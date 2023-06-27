@@ -1,0 +1,22 @@
+@import '../../variables.css';
+.dashboard_div {
+    margin-top: 70px;
+    margin-left: 110px;
+    z-index: -1;
+}
+
+.sidebar {
+    position: fixed;
+    z-index: 0;
+    width: 110px !important;
+}
+
+.options {
+    margin-top: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard_button {
+    white-space: normal;
+}

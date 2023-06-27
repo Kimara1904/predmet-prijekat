@@ -1,0 +1,9 @@
+@import '../../variables.css';
+.order_form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: var(--cream_color);
+    padding: 20px;
+    width: 340px;
+}

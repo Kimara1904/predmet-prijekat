@@ -1,0 +1,23 @@
+.div_login_form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.login_form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-items: space-between;
+    background-color: var(--cream_color);
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.login_buttons{
+    display: flex;
+    align-items: baseline;
+    width: 222px;
+    justify-content: space-between;
+}

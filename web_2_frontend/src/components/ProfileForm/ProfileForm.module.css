@@ -1,0 +1,53 @@
+@import '../../variables.css';
+.div_profile_form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px; 
+    background-color: var(--cream_color);
+}
+
+.profile_form {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.text_field {
+    width: 320px;
+}
+
+.profile_text {
+    white-space: pre-wrap;
+    text-align: justify;
+}
+
+.alert_profile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    width: auto;
+}
+
+.profile_input {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile_img_button img {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.profile_password {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
