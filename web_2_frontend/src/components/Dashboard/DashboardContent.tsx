@@ -13,6 +13,7 @@ import DeliveredOrdersContent from './Contents/DeliveredOrdersContent'
 import ArticleContent from './Contents/ArticleContent'
 import PlaceOrderContent from './Contents/PlaceOrderContent'
 import MyOrdersContent from './Contents/MyOrdersContent'
+import MapContent from './Contents/MapContent'
 
 const DashboardContent = () => {
   const contentContext = useContext(DashContext)
@@ -37,6 +38,8 @@ const DashboardContent = () => {
     content = <OrdersInDeliveryContent />
   } else if (contentContext.content === 'delivered') {
     content = <DeliveredOrdersContent />
+  } else if (contentContext.content === 'map') {
+    content = <MapContent />
   } else if (
     contentContext.content === 'place_order' ||
     (isCustomer() && contentContext.content === '')
@@ -149,6 +152,21 @@ const DashboardContent = () => {
               onClick={() => handleOptionsClick('delivered')}
             >
               Delivered orders
+            </Button>
+          )}
+          {isSellerVerified() && (
+            <Button
+              variant='text'
+              sx={{
+                color: 'var(--white_color)',
+                '&:hover': {
+                  backgroundColor: 'var(--cream_color)',
+                  color: 'var(--blue_color)'
+                }
+              }}
+              onClick={() => handleOptionsClick('map')}
+            >
+              Map of unapproved order
             </Button>
           )}
           {isCustomer() && (

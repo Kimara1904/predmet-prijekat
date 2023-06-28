@@ -27,7 +27,7 @@ export const getMyOrders = async (): Promise<AxiosResponse<Order[]>> => {
 }
 
 export const cancelOrder = async (id: number): Promise<AxiosResponse<string>> => {
-  return await axios.put<string>(`${url}/${id}`)
+  return await axios.put<string>(`${url}/cancel/${id}`)
 }
 
 export const getDeliveryPrice = async (ids: number[]): Promise<AxiosResponse<number>> => {
@@ -37,4 +37,12 @@ export const getDeliveryPrice = async (ids: number[]): Promise<AxiosResponse<num
 
 export const payOrder = async (id: number): Promise<AxiosResponse<Order>> => {
   return await axios.put<Order>(`${url}/pay/${id}`)
+}
+
+export const aproveOrder = async (id: number): Promise<AxiosResponse<Order>> => {
+  return await axios.put<Order>(`${url}/aprove/${id}`)
+}
+
+export const getUnapproved = async (): Promise<AxiosResponse<Order[]>> => {
+  return await axios.get<Order[]>(`${url}/sellers-unapproved`)
 }

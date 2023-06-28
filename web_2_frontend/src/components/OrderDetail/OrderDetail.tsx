@@ -17,12 +17,13 @@ import {
 } from '@mui/material'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AxiosError, isAxiosError } from 'axios'
+import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js'
 
 import { Order } from '../../models/OrderModels'
-import { isAdmin, isCustomer } from '../../helpers/AuthHelper'
+import { isAdmin, isCustomer, isSellerVerified } from '../../helpers/AuthHelper'
 import styles from './OrderDetail.module.css'
 import alertStyle from '../../App.module.css'
-import { cancelOrder } from '../../services/OrderService'
+import { aproveOrder, cancelOrder, payOrder } from '../../services/OrderService'
 import { GetTimeUntilDelivery, hasPassedOneHour, isInDelivery } from '../../helpers/DateTimeHelper'
 import { ErrorData } from '../../models/ErrorModels'
 import DashContext from '../../store/dashboard-context'
@@ -41,7 +42,13 @@ const OrderDetail = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    setOrder(location.order)
+    const storedOrderData = sessionStorage.getItem('order')
+    if (storedOrderData) {
+      const parsedOrder = JSON.parse(storedOrderData) as Order
+      setOrder(parsedOrder)
+    } else if (location.order) {
+      setOrder(location.order)
+    }
   }, [location.order])
 
   useEffect(() => {
@@ -80,6 +87,22 @@ const OrderDetail = () => {
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
+  }
+
+  const handleApproveOrder = () => {
+    aproveOrder(order?.id as number)
+      .then(() => {
+        contentContext.setContent('map')
+        navigate('/dashboard')
+      })
+      .catch((error: AxiosError<ErrorData>) => {
+        if (isAxiosError(error)) {
+          setAlertError({
+            isError: true,
+            message: error.response?.data.Exception as string
+          })
+        }
+      })
   }
 
   return (
@@ -154,11 +177,15 @@ const OrderDetail = () => {
                   <TableCell align='right'>
                     {order?.isCancled
                       ? 'Canceled'
-                      : isInDelivery(new Date(order?.deliveryTime as string), currentTime)
-                      ? isAdmin()
-                        ? 'In Delivery'
-                        : GetTimeUntilDelivery(new Date(order?.deliveryTime as string), currentTime)
-                      : 'Delivered'}
+                      : order?.isPayed
+                      ? order?.isApproved
+                        ? isInDelivery(new Date(order?.deliveryTime), currentTime)
+                          ? isAdmin()
+                            ? 'In Delivery'
+                            : GetTimeUntilDelivery(new Date(order?.deliveryTime), currentTime)
+                          : 'Delivered'
+                        : 'Unaproved'
+                      : 'Unpayed'}
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -172,7 +199,7 @@ const OrderDetail = () => {
                           <Typography key={item.id} variant='body2'>
                             {`${item.articleName} x ${item.amount}: ${
                               item.articlePrice * item.amount
-                            }RSD`}
+                            }USD`}
                           </Typography>
                         )
                       })}
@@ -188,14 +215,14 @@ const OrderDetail = () => {
                   <TableCell component='th' scope='row'>
                     <Typography variant='h6'>Delivery price:</Typography>
                   </TableCell>
-                  <TableCell align='right'>{order?.deliveryPrice || ''} RSD</TableCell>
+                  <TableCell align='right'>{order?.deliveryPrice || ''} AUD</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell component='th' scope='row'>
                     <Typography variant='h6'>Total price:</Typography>
                   </TableCell>
                   <TableCell align='right'>
-                    {(order?.itemPrice as number) + (order?.deliveryPrice as number) || ''} RSD
+                    {(order?.itemPrice as number) + (order?.deliveryPrice as number) || ''} AUD
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -204,12 +231,71 @@ const OrderDetail = () => {
         </div>
         {isCustomer() &&
           !order?.isCancled &&
-          isInDelivery(new Date(order?.deliveryTime as string), currentTime) &&
-          !hasPassedOneHour(new Date(order?.deliveryTime as string), currentTime) && (
-            <Button variant='contained' color='error' onClick={handleOpenDialog}>
+          (!order?.isPayed ||
+            (order?.isPayed &&
+              (!order?.isApproved ||
+                (order.isApproved &&
+                  isInDelivery(new Date(order?.deliveryTime), currentTime) &&
+                  !hasPassedOneHour(new Date(order?.deliveryTime), currentTime))))) && (
+            <Button
+              variant='contained'
+              color='error'
+              onClick={handleOpenDialog}
+              style={{ marginBottom: '16px' }}
+            >
               Cancel
             </Button>
           )}
+        {isCustomer() && !order?.isCancled && !order?.isPayed && (
+          <PayPalScriptProvider
+            options={{
+              currency: 'AUD',
+              clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID
+                ? process.env.REACT_APP_PAYPAL_CLIENT_ID
+                : ''
+            }}
+          >
+            <PayPalButtons
+              style={{ label: 'checkout' }}
+              createOrder={async (data, actions) => {
+                return actions.order.create({
+                  purchase_units: [
+                    {
+                      amount: {
+                        value: ((order?.itemPrice as number) + (order?.deliveryPrice as number))
+                          .toFixed(2)
+                          .toString(),
+                        currency_code: 'AUD'
+                      }
+                    }
+                  ]
+                })
+              }}
+              onApprove={async (data, actions) => {
+                return actions.order?.capture().then(() => {
+                  payOrder(order?.id as number)
+                    .then((response) => {
+                      setOrder(response.data)
+                      sessionStorage.setItem('order', JSON.stringify(response.data))
+                    })
+                    .catch((error: AxiosError<ErrorData>) => {
+                      if (isAxiosError(error)) {
+                        setAlertError({
+                          isError: true,
+                          message: error.response?.data.Exception as string
+                        })
+                      }
+                    })
+                })
+              }}
+            />
+          </PayPalScriptProvider>
+        )}
+        {isSellerVerified() && !order?.isCancled && order?.isPayed && !order?.isApproved && (
+          <Button variant='contained' color='success' onClick={handleApproveOrder}>
+            Approve
+          </Button>
+        )}
       </div>
     </div>
   )

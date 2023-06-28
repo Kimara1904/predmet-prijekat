@@ -6,3 +6,15 @@ export interface ErrorData {
   StatusCode: number
   SupportMessage: string
 }
+
+export interface PayPalError {
+  name: string
+  details: [
+    {
+      field: string
+      value: string
+      issue: string
+      description: string
+    }
+  ]
+}

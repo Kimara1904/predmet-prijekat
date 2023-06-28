@@ -24,6 +24,7 @@ namespace Web_2_Online_Shop.Services
                 throw new NotFoundException(string.Format("Order with id: {0} in delivery process doesn't exist.", id));
 
             order.IsApproved = true;
+            order.DeliveryTime = DateTime.Now.AddHours(1).AddMinutes(new Random().Next(60));
 
             _repository._orderRepository.Update(order);
             await _repository.SaveChanges();
@@ -34,7 +35,7 @@ namespace Web_2_Online_Shop.Services
         public async Task Cancel(int id, int buyerId)
         {
             var ordersQuery = await _repository._orderRepository.GetAllAsync();
-            var order = ordersQuery.Include(o => o.Items).Where(o => o.Id == id && o.BuyerId == buyerId && !o.IsCanceled && !o.IsApproved || (o.DeliveryTime - DateTime.Now).TotalHours > 1).FirstOrDefault() ??
+            var order = ordersQuery.Include(o => o.Items).Where(o => o.Id == id && o.BuyerId == buyerId && !o.IsCanceled && (!o.IsApproved || (o.IsApproved && !o.IsPayed) || (o.IsPayed && (o.DeliveryTime - DateTime.Now).TotalHours > 1))).FirstOrDefault() ??
                 throw new NotFoundException(string.Format("Order with id: {0} in delivery process doesn't exist.", id));
 
             foreach (var item in order.Items)
@@ -96,7 +97,10 @@ namespace Web_2_Online_Shop.Services
             await _repository._orderRepository.Insert(order);
             await _repository.SaveChanges();
 
-            return _mapper.Map<MyOrderDTO>(order);
+            var returnValue = _mapper.Map<MyOrderDTO>(order);
+
+            returnValue.ItemPrice = CalculateItemPrice(order.Items);
+            return returnValue;
         }
 
         public async Task<List<OrderDTO>> GetAll()
@@ -203,7 +207,7 @@ namespace Web_2_Online_Shop.Services
 
         private double CalculateDeliveryPrice(List<Article> articles)
         {
-            return articles.Select(a => a.SellerId).Distinct().Count() * 100.00;
+            return articles.Select(a => a.SellerId).Distinct().Count() * 0.5;
         }
 
         private double CalculateItemPrice(List<OrderItem> items)

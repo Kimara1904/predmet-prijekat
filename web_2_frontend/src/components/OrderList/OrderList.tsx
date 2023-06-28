@@ -45,6 +45,17 @@ const OrderList = (prop: OrderListProperties) => {
     }
   }
 
+  const handlePayOrder = (message: string) => {
+    setAlertShow({
+      isError: true,
+      severity: 'success',
+      message: message
+    })
+    if (prop.onPay) {
+      prop.onPay()
+    }
+  }
+
   let content: ReactNode = null
   if (prop.orders.length === 0) {
     content = (
@@ -67,6 +78,7 @@ const OrderList = (prop: OrderListProperties) => {
             order={order}
             onError={handleError}
             onCancel={handleCancelOrder}
+            onPay={handlePayOrder}
           />
         ))}
       </TableBody>

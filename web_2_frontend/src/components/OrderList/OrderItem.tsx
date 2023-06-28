@@ -85,32 +85,43 @@ const OrderItem = (props: OrderItemProperties) => {
               (props.order.items[2] ? '...' : '')
             : '')}
       </TableCell>
-      <TableCell align='center'>{props.order.itemPrice + props.order.deliveryPrice}</TableCell>
+      <TableCell align='center'>{props.order.itemPrice + props.order.deliveryPrice}AUD</TableCell>
       <TableCell align='right'>{props.order.address}</TableCell>
       <TableCell align='right'>
         {props.order.isCancled
           ? 'Canceled'
-          : isInDelivery(new Date(props.order.deliveryTime), currentTime)
-          ? isAdmin()
-            ? 'In Delivery'
-            : GetTimeUntilDelivery(new Date(props.order.deliveryTime), currentTime)
-          : 'Delivered'}
+          : props.order.isPayed
+          ? props.order.isApproved
+            ? isInDelivery(new Date(props.order.deliveryTime), currentTime)
+              ? isAdmin()
+                ? 'In Delivery'
+                : GetTimeUntilDelivery(new Date(props.order.deliveryTime), currentTime)
+              : 'Delivered'
+            : 'Unaproved'
+          : 'Unpayed'}
       </TableCell>
       <TableCell align='right'>
         {isCustomer() &&
           !props.order.isCancled &&
           (!props.order.isPayed ||
             (props.order.isPayed &&
-              isInDelivery(new Date(props.order.deliveryTime), currentTime) &&
-              !hasPassedOneHour(new Date(props.order.deliveryTime), currentTime))) && (
-            <Button variant='contained' color='error' onClick={handleOpenDialog}>
+              (!props.order.isApproved ||
+                (props.order.isApproved &&
+                  isInDelivery(new Date(props.order.deliveryTime), currentTime) &&
+                  !hasPassedOneHour(new Date(props.order.deliveryTime), currentTime))))) && (
+            <Button
+              variant='contained'
+              color='error'
+              onClick={handleOpenDialog}
+              style={{ marginBottom: '16px' }}
+            >
               Cancel
             </Button>
           )}
         {isCustomer() && !props.order.isCancled && !props.order.isPayed && (
           <PayPalScriptProvider
             options={{
-              currency: 'RSD',
+              currency: 'AUD',
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID
                 ? process.env.REACT_APP_PAYPAL_CLIENT_ID
                 : ''
@@ -126,7 +137,7 @@ const OrderItem = (props: OrderItemProperties) => {
                         value: (props.order.itemPrice + props.order.deliveryPrice)
                           .toFixed(2)
                           .toString(),
-                        currency_code: 'RSD'
+                        currency_code: 'AUD'
                       }
                     }
                   ]
@@ -135,11 +146,13 @@ const OrderItem = (props: OrderItemProperties) => {
               onApprove={async (data, actions) => {
                 return actions.order?.capture().then(() => {
                   payOrder(props.order.id)
-                    .then((response) => {
-                      //refresh listu
+                    .then(() => {
+                      props.onPay('Successfully payed order.')
                     })
-                    .catch((error: AxiosError) => {
-                      //alert
+                    .catch((error: AxiosError<ErrorData>) => {
+                      if (isAxiosError(error)) {
+                        props.onError(error.response?.data.Exception as string)
+                      }
                     })
                 })
               }}

@@ -156,7 +156,7 @@ const ArticleItem = (prop: ArticleItemProperties) => {
           alt='article'
         />
         <Typography>{prop.article.name}</Typography>
-        <Typography>{`${prop.article.price} RSD`}</Typography>
+        <Typography>{`${prop.article.price} AUD`}</Typography>
         <Typography>{`Amount: ${prop.article.amount}`}</Typography>
         {isCustomer() &&
           (picked ? (

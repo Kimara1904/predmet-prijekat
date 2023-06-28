@@ -52,7 +52,7 @@ const MyOrdersContent = () => {
           {alertError.message}
         </Alert>
       )}
-      <OrderList orders={orderList} onCancel={getOrders} />
+      <OrderList orders={orderList} onCancel={getOrders} onPay={getOrders} />
     </>
   )
 }

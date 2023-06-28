@@ -10,7 +10,7 @@ export interface Order {
   comment: string
   deliveryTime: string
   isCancled: boolean
-  isApproval: boolean
+  isApproved: boolean
   isPayed: boolean
 }
 
@@ -18,5 +18,12 @@ export interface CreateOrder {
   items: CreateItem[]
   address: string
   comment: string
+  payingMethod: string
   isPaying: boolean
+}
+
+export interface UnapprovedOrder {
+  order: Order
+  lat: number
+  lon: number
 }

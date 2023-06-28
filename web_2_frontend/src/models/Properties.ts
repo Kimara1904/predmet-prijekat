@@ -1,17 +1,19 @@
 import { Article } from './ArticleModels'
 import { PickedItemInfo } from './OrderItemModels'
-import { Order } from './OrderModels'
+import { Order, UnapprovedOrder } from './OrderModels'
 import { User } from './UserModels'
 
 export interface OrderListProperties {
   orders: Order[]
   onCancel?: () => void
+  onPay?: () => void
 }
 
 export interface OrderItemProperties {
   order: Order
   onError: (message: string) => void
   onCancel: (message: string) => void
+  onPay: (message: string) => void
 }
 
 export interface SellerVerifyListProperties {
@@ -48,4 +50,8 @@ export interface ArticleFormProperties {
 export interface ProfileFormProperties {
   user: User
   onChangeValue: (user: User) => void
+}
+
+export interface MarkProperties {
+  mark: UnapprovedOrder
 }

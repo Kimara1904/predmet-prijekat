@@ -26,6 +26,7 @@ import alertStyle from '../../App.module.css'
 import ArticleForm from '../ArticleForm/ArticleForm'
 import { deleteArticle } from '../../services/ArticleService'
 import { ErrorData } from '../../models/ErrorModels'
+import { isSellerVerified } from '../../helpers/AuthHelper'
 
 const ArticleDetail = () => {
   const [article, setArticle] = useState<Article>()
@@ -138,23 +139,25 @@ const ArticleDetail = () => {
             src={article?.image ? `data:image/png;base64,${article.image}` : articleDefault}
             alt='article'
           />
-          <div className={styles.article_detail_buttons}>
-            <Button
-              variant='contained'
-              onClick={handleEditClick}
-              style={{ marginTop: '16px', width: '100px' }}
-            >
-              Edit
-            </Button>
-            <Button
-              variant='contained'
-              color='error'
-              onClick={handleOpenDialog}
-              style={{ marginTop: '16px', width: '100px' }}
-            >
-              Delete
-            </Button>
-          </div>
+          {isSellerVerified() && (
+            <div className={styles.article_detail_buttons}>
+              <Button
+                variant='contained'
+                onClick={handleEditClick}
+                style={{ marginTop: '16px', width: '100px' }}
+              >
+                Edit
+              </Button>
+              <Button
+                variant='contained'
+                color='error'
+                onClick={handleOpenDialog}
+                style={{ marginTop: '16px', width: '100px' }}
+              >
+                Delete
+              </Button>
+            </div>
+          )}
         </div>
         <div className={styles.article_info}>
           <TableContainer>

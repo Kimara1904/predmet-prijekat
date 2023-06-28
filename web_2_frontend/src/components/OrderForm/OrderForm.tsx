@@ -1,4 +1,4 @@
-import { ChangeEvent, createRef, useContext, useEffect, useState } from 'react'
+import { ChangeEvent, useContext, useEffect, useState } from 'react'
 
 import {
   Alert,
@@ -23,7 +23,7 @@ import { CreateOrder } from '../../models/OrderModels'
 import { createOrder, getDeliveryPrice } from '../../services/OrderService'
 import styles from './OrderForm.module.css'
 import alertStyle from '../../App.module.css'
-import { ErrorData } from '../../models/ErrorModels'
+import { ErrorData, PayPalError } from '../../models/ErrorModels'
 import { CalculateItemPrice } from '../../helpers/PriceHelper'
 
 const OrderForm = () => {
@@ -34,11 +34,9 @@ const OrderForm = () => {
     severity: 'success'
   })
   const [paymentMethod, setPaymentMethod] = useState('Cash')
-  const [isPayed, setIsPayed] = useState(false)
   const [deliveryPrice, setDeliveryPrice] = useState(0)
-
-  const addressRef = createRef<HTMLInputElement>()
-  const commentRef = createRef<HTMLInputElement>()
+  const [address, setAddress] = useState('')
+  const [comment, setComment] = useState('')
 
   const cartContext = useContext(CartContext)
 
@@ -68,7 +66,7 @@ const OrderForm = () => {
   }, [cartContext.items])
 
   const handleBlurAddress = (): void => {
-    if (addressRef.current?.value.trim().length === 0) {
+    if (address.trim().length === 0) {
       setIsAddressError(true)
     }
   }
@@ -77,10 +75,9 @@ const OrderForm = () => {
     setPaymentMethod(event.target.value)
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const enteredAddrress = addressRef.current?.value.trim() as string
-    const enteredComment = commentRef.current?.value.trim() as string
+  const makeOrder = (isPayed: boolean) => {
+    const enteredAddrress = address
+    const enteredComment = comment
     if (enteredAddrress.length === 0) {
       setIsAddressError(true)
       return
@@ -105,11 +102,13 @@ const OrderForm = () => {
       items: pickedItems,
       address: enteredAddrress,
       comment: enteredComment,
+      payingMethod: paymentMethod,
       isPaying: isPayed
     }
 
     createOrder(request)
       .then((response) => {
+        cartContext.onRemoveAll()
         navigate('/order_detail', { state: { order: response.data } })
       })
       .catch((error: AxiosError<ErrorData>) => {
@@ -120,6 +119,18 @@ const OrderForm = () => {
           })
         }
       })
+  }
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    makeOrder(paymentMethod === 'Cash')
+  }
+
+  const handleAddressChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setAddress(event.target.value)
+  }
+
+  const handleCommentChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setComment(event.target.value)
   }
 
   return (
@@ -152,7 +163,8 @@ const OrderForm = () => {
           variant='outlined'
           error={isAddressError}
           helperText={isAddressError && 'Address is required.'}
-          inputRef={addressRef}
+          value={address}
+          onChange={handleAddressChange}
           onBlur={handleBlurAddress}
           onFocus={() => setIsAddressError(false)}
           style={{ marginBottom: '16px' }}
@@ -164,7 +176,8 @@ const OrderForm = () => {
           type='text'
           label='Comment'
           variant='outlined'
-          inputRef={commentRef}
+          value={comment}
+          onChange={handleCommentChange}
           style={{ marginBottom: '16px' }}
         />
         <FormLabel id='PaymentMethodLabel'>Payment method</FormLabel>
@@ -179,10 +192,10 @@ const OrderForm = () => {
           <FormControlLabel value='Cash' control={<Radio />} label='Cash' />
           <FormControlLabel value='Card' control={<Radio />} label='Card' />
         </RadioGroup>
-        {paymentMethod === 'Card' && (
+        {paymentMethod === 'Card' && cartContext.items.length !== 0 && address.length !== 0 && (
           <PayPalScriptProvider
             options={{
-              currency: 'RSD',
+              currency: 'AUD',
               clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID
                 ? process.env.REACT_APP_PAYPAL_CLIENT_ID
                 : ''
@@ -191,28 +204,39 @@ const OrderForm = () => {
             <PayPalButtons
               style={{ label: 'checkout' }}
               createOrder={async (data, actions) => {
-                return actions.order.create({
-                  purchase_units: [
-                    {
-                      amount: {
-                        value: (CalculateItemPrice(cartContext.items) + deliveryPrice)
-                          .toFixed(2)
-                          .toString(),
-                        currency_code: 'RSD'
+                return actions.order
+                  .create({
+                    purchase_units: [
+                      {
+                        amount: {
+                          value: (CalculateItemPrice(cartContext.items) + deliveryPrice)
+                            .toFixed(2)
+                            .toString(),
+                          currency_code: 'AUD'
+                        }
                       }
-                    }
-                  ]
-                })
+                    ]
+                  })
+                  .then((result) => {
+                    return result
+                  })
+                  .catch((error: PayPalError) => {
+                    setAlert({
+                      severity: 'error',
+                      message: error.details[0].description
+                    })
+                    return Promise.reject('')
+                  })
               }}
               onApprove={async (data, actions) => {
                 return actions.order
                   ?.capture()
                   .then(() => {
-                    setIsPayed(true)
                     setAlert({
                       message: 'You payed successfully',
                       severity: 'success'
                     })
+                    makeOrder(true)
                   })
                   .catch(() => {
                     setAlert({

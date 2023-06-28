@@ -53,11 +53,11 @@ const PickedItem = (props: PickedItemProperties) => {
         value={amount}
         onBlur={handleBlurAmount}
         onChange={handleAmountChange}
-        onKeyPress={handleKeyPress}
+        onKeyUp={handleKeyPress}
         inputProps={{ inputMode: 'numeric', min: '1', step: '1', max: `${props.item.capacity}` }}
         style={{ marginBottom: '16px' }}
       />
-      <Typography> x {props.item.price}RSD</Typography>
+      <Typography> x {props.item.price} AUD</Typography>
       <IconButton aria-label='delete' onClick={handleRemoveItem}>
         <DeleteIcon />
       </IconButton>
