@@ -13,7 +13,7 @@ import {
   Typography
 } from '@mui/material'
 import { AxiosError, isAxiosError } from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import styles from './RegisterForm.module.css'
 import alertStyle from '../../App.module.css'
@@ -47,6 +47,8 @@ const RegisterForm = () => {
   })
 
   const [role, setRole] = useState('Customer')
+
+  const navigation = useNavigate()
 
   const usernameRef = createRef<HTMLInputElement>()
   const emailRef = createRef<HTMLInputElement>()
@@ -308,6 +310,7 @@ const RegisterForm = () => {
           message: response.data,
           severity: 'success'
         })
+        navigation('/login')
       })
       .catch((error: AxiosError<ErrorData>) => {
         if (isAxiosError(error)) {

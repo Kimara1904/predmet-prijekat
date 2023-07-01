@@ -123,7 +123,7 @@ namespace Web_2_Online_Shop.Services
             var ordersQuery = await _repository._orderRepository.GetAllAsync();
             var articles = articleQuery.Where(a => a.SellerId == id).ToList();
             var orders = ordersQuery.Include(o => o.Items)
-                .Where(o => o.Items.Any(i => articles.Any(a => a.Id == i.ArticleId)) && o.DeliveryTime <= DateTime.Now && !o.IsCanceled).ToList();
+                .Where(o => o.Items.Any(i => articles.Any(a => a.Id == i.ArticleId)) && o.IsApproved && o.IsPayed && o.DeliveryTime <= DateTime.Now && !o.IsCanceled).ToList();
 
             var returnValue = _mapper.Map<List<Order>, List<OrderDTO>>(orders);
 
@@ -140,7 +140,7 @@ namespace Web_2_Online_Shop.Services
             var ordersQuery = await _repository._orderRepository.GetAllAsync();
             var articles = articleQuery.Where(a => a.SellerId == id).ToList();
             var orders = ordersQuery.Include(o => o.Items)
-                .Where(o => o.Items.Any(i => articles.Any(a => a.Id == i.ArticleId)) && o.DeliveryTime > DateTime.Now && !o.IsCanceled).ToList();
+                .Where(o => o.Items.Any(i => articles.Any(a => a.Id == i.ArticleId)) && o.IsApproved && o.IsPayed && o.DeliveryTime > DateTime.Now && !o.IsCanceled).ToList();
 
             var returnValue = _mapper.Map<List<Order>, List<OrderDTO>>(orders);
 

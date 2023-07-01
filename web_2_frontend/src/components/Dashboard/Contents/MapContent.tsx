@@ -63,7 +63,6 @@ const MapContent = () => {
         Promise.all(promises)
           .then(() => {
             setMarks(markersData)
-            console.log(markersData)
           })
           .catch((error) => {
             setAlertError({
