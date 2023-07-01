@@ -15,9 +15,9 @@ const PopupContent = (props: MarkProperties) => {
 
   return (
     <div>
-      <Typography>{props.mark.order.id}</Typography>
+      <Typography>{`Order id: ${props.mark.order.id}`}</Typography>
       <Typography>{props.mark.order.address}</Typography>
-      <Typography>{props.mark.order.isPayed}</Typography>
+      <Typography>{props.mark.order.isPayed ? 'Payed' : 'Unpayed'}</Typography>
       <Link to='#' onClick={handleClickLink}>
         Details
       </Link>
